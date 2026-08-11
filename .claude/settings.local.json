@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__freecad__execute_code"
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+"""
+Flip Extensions Macro
+=====================
+Snaps Body002 and/or Body004 between START (seat) and END (bed) positions.
+Pivot: Y-axis line at X=-581, Z=460 (Body034 hinge centreline).
+
+Set BODY  = "Body002", "Body004", or "both"
+Set STATE = "end"   -> flipped flat (bed position)
+         = "start" -> reset (seat position)
+"""
+
+import FreeCAD
+import FreeCADGui
+from FreeCAD import Vector, Rotation, Placement
+
+# ── Configuration ──────────────────────────────────────────────────────────────
+BODY  = "both"   # "Body002", "Body004", or "both"
+STATE = "end"    # "end" = bed position,  "start" = seat/reset position
+# ──────────────────────────────────────────────────────────────────────────────
+
+DOC_NAME = "New_Van_Friday"
+
+PIVOT_X = -581.0
+PIVOT_Z =  460.0
+
+ORIG_BASE002 = Vector(-40.0, 2150.5, 420.0)
+ORIG_BASE004 = Vector(-31.0,  700.0, 420.0)
+
+
+def flipped_placement(orig_base):
+    pivot = Vector(PIVOT_X, orig_base.y, PIVOT_Z)
+    rot   = Rotation(Vector(0, 1, 0), 180)
+    return Placement(pivot + rot.multVec(orig_base - pivot), rot)
+
+def reset_placement(orig_base):
+    return Placement(orig_base, Rotation(Vector(0, 0, 1), 0))
+
+
+doc = FreeCAD.getDocument(DOC_NAME)
+
+targets = []
+if BODY in ("Body002", "both"):
+    targets.append(("Body002", ORIG_BASE002))
+if BODY in ("Body004", "both"):
+    targets.append(("Body004", ORIG_BASE004))
+
+for name, orig_base in targets:
+    obj = doc.getObject(name)
+    obj.Placement = flipped_placement(orig_base) if STATE == "end" else reset_placement(orig_base)
+    FreeCAD.Console.PrintMessage(f"{name} -> {STATE}\n")
+
+doc.recompute()
+FreeCADGui.updateGui()
